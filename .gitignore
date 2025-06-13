@@ -1,1 +1,31 @@
-node_modules
+# Node modules
+node_modules/
+
+# Maven build directory
+target/
+*/target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Logs
+*.log
+
+# Build artifacts
+*.jar
+*.war
+*.ear
+*.class
+
+# Local configuration
+application-*.properties
+!application-example.properties
+
+# OS files
+.DS_Store
+Thumbs.db
