@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,10 +20,9 @@ import static com.example.computer_item_repair.security.SecurityConstants.SIGN_U
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(
+@EnableMethodSecurity(
         securedEnabled = true,
-        jsr250Enabled = true,
-        prePostEnabled = true
+        jsr250Enabled = true
 )
 public class SecurityConfig {
 
@@ -41,10 +40,12 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter();
     }
 
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
-        authenticationManagerBuilder.userDetailsService(customUserDetailsService)
-                .passwordEncoder(bCryptPasswordEncoder);
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(customUserDetailsService);
+        authProvider.setPasswordEncoder(bCryptPasswordEncoder);
+        return authProvider;
     }
 
     @Bean
@@ -63,9 +64,9 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .headers(headers -> headers
-                .frameOptions().sameOrigin()) //To enable H2 Database
-            .authorizeRequests(auth -> auth
-                .antMatchers(
+                .frameOptions(frameOptions -> frameOptions.sameOrigin())) // Updated frameOptions config
+            .authorizeHttpRequests(auth -> auth  // Changed from authorizeRequests to authorizeHttpRequests
+                .requestMatchers(  // Changed from antMatchers to requestMatchers
                     "/",
                     "/favicon.ico",
                     "/**/*.png",
@@ -76,10 +77,11 @@ public class SecurityConfig {
                     "/**/*.css",
                     "/**/*.js"
                 ).permitAll()
-                .antMatchers(SIGN_UP_URLS).permitAll()
-                .antMatchers(H2_URL).permitAll()
+                .requestMatchers(SIGN_UP_URLS).permitAll()
+                .requestMatchers(H2_URL).permitAll()
                 .anyRequest().authenticated());
 
+        http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         
         return http.build();

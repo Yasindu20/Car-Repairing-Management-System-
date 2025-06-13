@@ -2,9 +2,13 @@ package com.example.computer_item_repair.security;
 
 import com.example.computer_item_repair.domain.User;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +18,12 @@ import static com.example.computer_item_repair.security.SecurityConstants.SECRET
 
 @Component
 public class JwtTokenProvider {
+
+    // Create a secure key from our SECRET
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(SECRET);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
 
     public String generateToken(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
@@ -33,14 +43,17 @@ public class JwtTokenProvider {
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, SECRET)
+                .signWith(getSigningKey())  // Updated signing method
                 .compact();
     }
 
     // Validate token
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token);
+            Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token);
             return true;
         } catch (SignatureException ex) {
             System.out.println("Invalid JWT Signature");
@@ -58,7 +71,12 @@ public class JwtTokenProvider {
 
     // Get user Id from token
     public Long getUserIdFromJWT(String token) {
-        Claims claims = Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token).getBody();
+        Claims claims = Jwts.parserBuilder()
+            .setSigningKey(getSigningKey())
+            .build()
+            .parseClaimsJws(token)
+            .getBody();
+            
         String id = (String) claims.get("id");
 
         return Long.parseLong(id);
