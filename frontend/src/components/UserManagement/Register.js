@@ -14,8 +14,7 @@ class Register extends Component {
       password: "",
       confirmPassword: "",
       errors: {},
-      isSubmitting: false,
-      debugInfo: ""
+      isSubmitting: false
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
@@ -32,18 +31,14 @@ class Register extends Component {
       console.log("Received errors:", nextProps.errors);
       this.setState({ 
         errors: nextProps.errors,
-        isSubmitting: false,
-        debugInfo: "Received errors: " + JSON.stringify(nextProps.errors)
+        isSubmitting: false 
       });
     }
   }
 
   onSubmit(e) {
     e.preventDefault();
-    this.setState({ 
-      isSubmitting: true,
-      debugInfo: "Submitting form..."
-    });
+    this.setState({ isSubmitting: true });
     
     const newUser = {
       username: this.state.username,
@@ -61,24 +56,26 @@ class Register extends Component {
   }
 
   render() {
-    const { errors, isSubmitting, debugInfo } = this.state;
+    const { errors, isSubmitting } = this.state;
+    
+    // Display generic error if we get HTML error response
+    const hasGenericError = errors.error || 
+      (typeof errors === 'string' && errors.includes('<!doctype html>'));
+    
     return (
       <div className="register">
         <div className="container">
           <div className="row">
             <div className="col-md-5 m-auto">
               <h1 className="display-4 text-center">Sign Up</h1>
-              {debugInfo && (
-                <div className="alert alert-info">
-                  {debugInfo}
-                </div>
-              )}
-              {Object.keys(errors).length > 0 && (
+              
+              {hasGenericError && (
                 <div className="alert alert-danger">
-                  Please correct the errors below
+                  Server error occurred. Please try again later.
                 </div>
               )}
-              <form onSubmit={this.onSubmit} style={{ marginTop: 100 }}>
+              
+              <form onSubmit={this.onSubmit} style={{ marginTop: 50 }}>
                 <div className="form-group">
                   <input
                     type="text"

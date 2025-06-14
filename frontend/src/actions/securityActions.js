@@ -14,11 +14,10 @@ export const createNewUser = (newUser, history) => async dispatch => {
     });
     
     // Make the API call
-    const res = await axios.post("/api/users/register", newUser);
+    await axios.post("/api/users/register", newUser);
     
-    console.log("Registration API response:", res);
-    
-    // If we get here, registration was successful
+    // Registration successful
+    console.log("Registration successful, redirecting to login");
     history.push("/login");
     
   } catch (err) {
@@ -26,27 +25,15 @@ export const createNewUser = (newUser, history) => async dispatch => {
     
     if (err.response) {
       console.error("Error response data:", err.response.data);
-      console.error("Error response status:", err.response.status);
       
       dispatch({
         type: GET_ERRORS,
         payload: err.response.data
       });
-    } else if (err.request) {
-      // The request was made but no response was received
-      console.error("No response received:", err.request);
-      
-      dispatch({
-        type: GET_ERRORS,
-        payload: { error: "Server did not respond. Please try again later." }
-      });
     } else {
-      // Something happened in setting up the request
-      console.error("Request setup error:", err.message);
-      
       dispatch({
         type: GET_ERRORS,
-        payload: { error: "Could not send request: " + err.message }
+        payload: { error: "Server error occurred. Please try again later." }
       });
     }
   }
