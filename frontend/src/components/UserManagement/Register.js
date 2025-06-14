@@ -13,7 +13,8 @@ class Register extends Component {
       fullName: "",
       password: "",
       confirmPassword: "",
-      errors: {}
+      errors: {},
+      isSubmitting: false
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
@@ -27,12 +28,25 @@ class Register extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.errors) {
-      this.setState({ errors: nextProps.errors });
+      console.log("Received errors:", nextProps.errors);
+      
+      // Handle HTML error response
+      let processedErrors = nextProps.errors;
+      if (typeof nextProps.errors === 'string' && nextProps.errors.includes('<!doctype html>')) {
+        processedErrors = { error: "Server error occurred. Please try again later." };
+      }
+      
+      this.setState({ 
+        errors: processedErrors,
+        isSubmitting: false 
+      });
     }
   }
 
   onSubmit(e) {
     e.preventDefault();
+    this.setState({ isSubmitting: true });
+    
     const newUser = {
       username: this.state.username,
       fullName: this.state.fullName,
@@ -40,6 +54,7 @@ class Register extends Component {
       confirmPassword: this.state.confirmPassword
     };
 
+    console.log("Submitting registration:", newUser);
     this.props.createNewUser(newUser, this.props.history);
   }
 
@@ -48,14 +63,28 @@ class Register extends Component {
   }
 
   render() {
-    const { errors } = this.state;
+    const { errors, isSubmitting } = this.state;
+    
+    // Check if errors is a string or an object with error property
+    const hasGenericError = typeof errors === 'string' || errors.error;
+    const errorMessage = typeof errors === 'string' 
+      ? "Server error occurred. Please try again later." 
+      : (errors.error || "");
+    
     return (
       <div className="register">
         <div className="container">
           <div className="row">
             <div className="col-md-5 m-auto">
               <h1 className="display-4 text-center">Sign Up</h1>
-              <form onSubmit={this.onSubmit} style={{ marginTop: 100  }}>
+              
+              {hasGenericError && (
+                <div className="alert alert-danger">
+                  {errorMessage}
+                </div>
+              )}
+              
+              <form onSubmit={this.onSubmit} style={{ marginTop: 50 }}>
                 <div className="form-group">
                   <input
                     type="text"
@@ -118,7 +147,13 @@ class Register extends Component {
                     </div>
                   )}
                 </div>
-                <input type="submit" className="btn btn-info btn-block mt-4" />
+                <button 
+                  type="submit" 
+                  className="btn btn-info btn-block mt-4"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Signing Up...' : 'Sign Up'}
+                </button>
               </form>
             </div>
           </div>
@@ -138,6 +173,7 @@ const mapStateToProps = state => ({
   errors: state.errors,
   security: state.security
 });
+
 export default connect(
   mapStateToProps,
   { createNewUser }

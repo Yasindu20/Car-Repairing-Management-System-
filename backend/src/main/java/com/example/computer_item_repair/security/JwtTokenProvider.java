@@ -43,7 +43,7 @@ public class JwtTokenProvider {
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(getSigningKey())  // Updated signing method
+                .signWith(getSigningKey())
                 .compact();
     }
 
