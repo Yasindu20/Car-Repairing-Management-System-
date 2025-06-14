@@ -29,8 +29,15 @@ class Register extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.errors) {
       console.log("Received errors:", nextProps.errors);
+      
+      // Handle HTML error response
+      let processedErrors = nextProps.errors;
+      if (typeof nextProps.errors === 'string' && nextProps.errors.includes('<!doctype html>')) {
+        processedErrors = { error: "Server error occurred. Please try again later." };
+      }
+      
       this.setState({ 
-        errors: nextProps.errors,
+        errors: processedErrors,
         isSubmitting: false 
       });
     }
@@ -58,9 +65,11 @@ class Register extends Component {
   render() {
     const { errors, isSubmitting } = this.state;
     
-    // Display generic error if we get HTML error response
-    const hasGenericError = errors.error || 
-      (typeof errors === 'string' && errors.includes('<!doctype html>'));
+    // Check if errors is a string or an object with error property
+    const hasGenericError = typeof errors === 'string' || errors.error;
+    const errorMessage = typeof errors === 'string' 
+      ? "Server error occurred. Please try again later." 
+      : (errors.error || "");
     
     return (
       <div className="register">
@@ -71,7 +80,7 @@ class Register extends Component {
               
               {hasGenericError && (
                 <div className="alert alert-danger">
-                  Server error occurred. Please try again later.
+                  {errorMessage}
                 </div>
               )}
               

@@ -17,13 +17,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.example.computer_item_repair.security.SecurityConstants.TOKEN_PREFIX;
 
@@ -72,7 +70,9 @@ public class UserController {
             return ResponseEntity.ok(new JWTLoginSucessReponse(true, jwt));
         } catch (Exception e) {
             logger.error("Authentication error: ", e);
-            return ResponseEntity.badRequest().body("Invalid username or password");
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Invalid username or password");
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 
@@ -80,22 +80,27 @@ public class UserController {
     public ResponseEntity<?> registerUser(@Valid @RequestBody User user, BindingResult result) {
         logger.info("Registration attempt for user: {}", user.getUsername());
         
-        // Validate passwords match
-        userValidator.validate(user, result);
-
-        ResponseEntity<?> errorMap = mapValidationErrorService.MapValidationService(result);
-        if (errorMap != null) {
-            logger.warn("Registration validation errors: {}", result.getAllErrors());
-            return errorMap;
-        }
-
         try {
+            // Validate passwords match
+            userValidator.validate(user, result);
+
+            ResponseEntity<?> errorMap = mapValidationErrorService.MapValidationService(result);
+            if (errorMap != null) {
+                logger.warn("Registration validation errors: {}", result.getAllErrors());
+                return errorMap;
+            }
+
             User newUser = userService.saveUser(user);
             logger.info("User registered successfully: {}", newUser.getUsername());
-            return new ResponseEntity<User>(newUser, HttpStatus.CREATED);
+            
+            Map<String, String> successResponse = new HashMap<>();
+            successResponse.put("success", "User registered successfully");
+            return new ResponseEntity<>(successResponse, HttpStatus.CREATED);
         } catch (Exception e) {
             logger.error("Registration error: ", e);
-            return ResponseEntity.badRequest().body(e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 }

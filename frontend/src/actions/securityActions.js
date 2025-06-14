@@ -16,26 +16,25 @@ export const createNewUser = (newUser, history) => async dispatch => {
     // Make the API call
     await axios.post("/api/users/register", newUser);
     
-    // Registration successful
     console.log("Registration successful, redirecting to login");
     history.push("/login");
     
   } catch (err) {
     console.error("Registration error:", err);
     
+    let errorData = { error: "Server error occurred. Please try again later." };
+    
     if (err.response) {
-      console.error("Error response data:", err.response.data);
-      
-      dispatch({
-        type: GET_ERRORS,
-        payload: err.response.data
-      });
-    } else {
-      dispatch({
-        type: GET_ERRORS,
-        payload: { error: "Server error occurred. Please try again later." }
-      });
+      if (err.response.data) {
+        errorData = err.response.data;
+      }
+      console.error("Error response status:", err.response.status);
     }
+    
+    dispatch({
+      type: GET_ERRORS,
+      payload: errorData
+    });
   }
 };
 
@@ -67,17 +66,16 @@ export const login = LoginRequest => async dispatch => {
   } catch (err) {
     console.error("Login error:", err);
     
-    if (err.response) {
-      dispatch({
-        type: GET_ERRORS,
-        payload: err.response.data
-      });
-    } else {
-      dispatch({
-        type: GET_ERRORS,
-        payload: { error: "Could not connect to server. Please try again." }
-      });
+    let errorData = { error: "Server error occurred. Please try again later." };
+    
+    if (err.response && err.response.data) {
+      errorData = err.response.data;
     }
+    
+    dispatch({
+      type: GET_ERRORS,
+      payload: errorData
+    });
   }
 };
 
