@@ -4,7 +4,6 @@ import com.example.computer_item_repair.domain.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-// Import the security package version of SignatureException
 import io.jsonwebtoken.security.SignatureException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
