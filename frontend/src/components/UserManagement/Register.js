@@ -13,7 +13,9 @@ class Register extends Component {
       fullName: "",
       password: "",
       confirmPassword: "",
-      errors: {}
+      errors: {},
+      isSubmitting: false,
+      debugInfo: ""
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
@@ -27,12 +29,22 @@ class Register extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.errors) {
-      this.setState({ errors: nextProps.errors });
+      console.log("Received errors:", nextProps.errors);
+      this.setState({ 
+        errors: nextProps.errors,
+        isSubmitting: false,
+        debugInfo: "Received errors: " + JSON.stringify(nextProps.errors)
+      });
     }
   }
 
   onSubmit(e) {
     e.preventDefault();
+    this.setState({ 
+      isSubmitting: true,
+      debugInfo: "Submitting form..."
+    });
+    
     const newUser = {
       username: this.state.username,
       fullName: this.state.fullName,
@@ -40,6 +52,7 @@ class Register extends Component {
       confirmPassword: this.state.confirmPassword
     };
 
+    console.log("Submitting registration:", newUser);
     this.props.createNewUser(newUser, this.props.history);
   }
 
@@ -48,14 +61,24 @@ class Register extends Component {
   }
 
   render() {
-    const { errors } = this.state;
+    const { errors, isSubmitting, debugInfo } = this.state;
     return (
       <div className="register">
         <div className="container">
           <div className="row">
             <div className="col-md-5 m-auto">
               <h1 className="display-4 text-center">Sign Up</h1>
-              <form onSubmit={this.onSubmit} style={{ marginTop: 100  }}>
+              {debugInfo && (
+                <div className="alert alert-info">
+                  {debugInfo}
+                </div>
+              )}
+              {Object.keys(errors).length > 0 && (
+                <div className="alert alert-danger">
+                  Please correct the errors below
+                </div>
+              )}
+              <form onSubmit={this.onSubmit} style={{ marginTop: 100 }}>
                 <div className="form-group">
                   <input
                     type="text"
@@ -118,7 +141,13 @@ class Register extends Component {
                     </div>
                   )}
                 </div>
-                <input type="submit" className="btn btn-info btn-block mt-4" />
+                <button 
+                  type="submit" 
+                  className="btn btn-info btn-block mt-4"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Signing Up...' : 'Sign Up'}
+                </button>
               </form>
             </div>
           </div>
@@ -138,6 +167,7 @@ const mapStateToProps = state => ({
   errors: state.errors,
   security: state.security
 });
+
 export default connect(
   mapStateToProps,
   { createNewUser }
