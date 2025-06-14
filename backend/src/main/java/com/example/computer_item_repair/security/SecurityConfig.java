@@ -81,17 +81,16 @@ public class SecurityConfig {
                 .headers(headers -> headers
                         .frameOptions(frameOptions -> frameOptions.sameOrigin()))
                 .authorizeHttpRequests(auth -> auth
+                        // Use specific patterns instead of wildcards with extensions
                         .requestMatchers(
                                 "/",
                                 "/favicon.ico",
-                                "/**/*.png",
-                                "/**/*.gif",
-                                "/**/*.svg",
-                                "/**/*.jpg",
-                                "/**/*.html",
-                                "/**/*.css",
-                                "/**/*.js")
-                        .permitAll()
+                                "/static/**",      // This will match all static resources
+                                "/css/**",         // CSS files
+                                "/js/**",          // JavaScript files
+                                "/images/**",      // Image files
+                                "/assets/**"       // Other assets
+                        ).permitAll()
                         .requestMatchers(SIGN_UP_URLS).permitAll()
                         .requestMatchers(H2_URL).permitAll()
                         .anyRequest().authenticated());
